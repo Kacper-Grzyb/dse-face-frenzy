@@ -1,55 +1,43 @@
 @startuml
-  !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
-' uncomment the following line and comment the first to use locally
-' !include C4_Deployment.puml
+' Deployment Diagram for PYNQ-Z2 Web Server System (Blue Theme)
 
-AddElementTag("fallback", $bgColor="#c0c0c0")
-AddRelTag("fallback", $textColor="#c0c0c0", $lineColor="#438DD5")
-
-' calculated legend is used (activated in last line)
-' LAYOUT_WITH_LEGEND()
-
-title Deployment Diagram for Internet Banking System - Live
-
-Deployment_Node(plc, "Big Bank plc", "Big Bank plc data center"){
-    Deployment_Node(dn, "bigbank-api***\tx8", "Ubuntu 16.04 LTS"){
-        Deployment_Node(apache, "Apache Tomcat", "Apache Tomcat 8.x"){
-            Container(api, "API Application", "Java and Spring MVC", "Provides Internet Banking functionality via a JSON/HTTPS API.")
-        }
-    }
-    Deployment_Node(bigbankdb01, "bigbank-db01", "Ubuntu 16.04 LTS"){
-        Deployment_Node(oracle, "Oracle - Primary", "Oracle 12c"){
-            ContainerDb(db, "Database", "Relational Database Schema", "Stores user registration information, hashed authentication credentials, access logs, etc.")
-        }
-    }
-    Deployment_Node(bigbankdb02, "bigbank-db02", "Ubuntu 16.04 LTS", $tags="fallback") {
-        Deployment_Node(oracle2, "Oracle - Secondary", "Oracle 12c", $tags="fallback") {
-            ContainerDb(db2, "Database", "Relational Database Schema", "Stores user registration information, hashed authentication credentials, access logs, etc.", $tags="fallback")
-        }
-    }
-    Deployment_Node(bb2, "bigbank-web***\tx4", "Ubuntu 16.04 LTS"){
-        Deployment_Node(apache2, "Apache Tomcat", "Apache Tomcat 8.x"){
-            Container(web, "Web Application", "Java and Spring MVC", "Delivers the static content and the Internet Banking single page application.")
-        }
-    }
+skinparam component {
+    BackgroundColor #D6EAF8
+    BorderColor #3498DB
+    FontColor #154360
+}
+skinparam node {
+    BackgroundColor #AED6F1
+    BorderColor #2874A6
+    FontColor #1B4F72
+}
+skinparam arrow {
+    Color #5DADE2
+    FontColor #1A5276
 }
 
-Deployment_Node(mob, "Customer's mobile device", "Apple IOS or Android"){
-    Container(mobile, "Mobile App", "Xamarin", "Provides a limited subset of the Internet Banking functionality to customers via their mobile device.")
+node "PYNQ-Z2 Board" as PYNQ {
+    component "Python Web Server\n(Flask)" as Web
+    component "Camera Interface\n(USB)" as Cam
+    component "Display Driver\n(HDMI)" as Disp
+    component "Button Listener\n(GPIO)" as Btn
 }
 
-Deployment_Node(comp, "Customer's computer", "Microsoft Windows or Apple macOS"){
-    Deployment_Node(browser, "Web Browser", "Google Chrome, Mozilla Firefox, Apple Safari or Microsoft Edge"){
-        Container(spa, "Single Page Application", "JavaScript and Angular", "Provides all of the Internet Banking functionality to customers via their web browser.")
-    }
+node "Client \n(PC)\n<<web browser>>" as Client {
+    component "Web Browser" as Browser
 }
 
-Rel(mobile, api, "Makes API calls to", "json/HTTPS")
-Rel(spa, api, "Makes API calls to", "json/HTTPS")
-Rel_U(web, spa, "Delivers to the customer's web browser")
-Rel(api, db, "Reads from and writes to", "JDBC")
-Rel(api, db2, "Reads from and writes to", "JDBC", $tags="fallback")
-Rel_R(db, db2, "Replicates data to")
+node "Camera Module\n<<Peripheral>>" as Camera
+node "Button\n<<Peripheral>>" as Button
+node "Display\n<<Peripheral>>" as Display
 
-SHOW_LEGEND()
+' Communication Links
+Client --> Web : WebSocket
+Web --> Cam : Image Capture\nUSB
+Web --> Disp : Render Output\nHDMI
+Web --> Btn : Input Events\nGPIO
+
+Cam --> Camera : USB
+Btn --> Button : GPIO
+Disp --> Display : HDMI
 @enduml
