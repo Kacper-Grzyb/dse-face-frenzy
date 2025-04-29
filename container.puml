@@ -1,37 +1,40 @@
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
-' uncomment the following line and comment the first to use locally
-' !include C4_Container.puml
 
-' LAYOUT_TOP_DOWN()
-' LAYOUT_AS_SKETCH()
 LAYOUT_WITH_LEGEND()
 
-title Container diagram for Internet Banking System
+title Container diagram for Face Frenzy
 
-Person(customer, Customer, "A customer of the bank, with personal bank accounts")
+Person(players, Player, "People playing Face Frenzy")
+Person(admin, Admin, "Person monitoring the game remotely through he HTTP server")
 
-System_Boundary(c1, "Internet Banking") {
-    Container(web_app, "Web Application", "Java, Spring MVC", "Delivers the static content and the Internet banking SPA")
-    Container(spa, "Single-Page App", "JavaScript, Angular", "Provides all the Internet banking functionality to customers via their web browser")
-    Container(mobile_app, "Mobile App", "C#, Xamarin", "Provides a limited subset of the Internet banking functionality to customers via their mobile device")
-    ContainerDb(database, "Database", "SQL Database", "Stores user registration information, hashed auth credentials, access logs, etc.")
-    Container(backend_api, "API Application", "Java, Docker Container", "Provides Internet banking functionality via API")
+System_Boundary(c1, "Frace Frenzy | PYNQ Board") {
+    Container(face_detection, "Face Detection Component", "C/C++", "Provides face detection from processed data based on the Haar-cascade Classifier from OpenCV")
+    Container(ui, "UI", "C/C++", "User interface displayed on the HDMI screen")
+    Container(io_handler, "I/O Handler", "C/C++", "Handles interactions between the system and I/O devices")
+    Container(game_manager, "Game State Manager", "C/C++", "Takes care of the game state, like starting the game, evaluating a loss or a win, etc.")
+    Container(server, "Basic HTTP Server", "Docker", "Allows remote monitoring of the game by system admins. Handled on a separate thread.")
+    Container(pipeline, "Data Pipeline", "C/C++", "Manages data transfer between the camera and the face detection, applying preprocessing along the way.")
 }
 
-System_Ext(email_system, "E-Mail System", "The internal Microsoft Exchange system")
-System_Ext(banking_system, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+System_Ext(camera, "Camera", "external video input device connected to the embedded device that will capture an image of the players after a countdown ends.")
+System_Ext(pynq, "Pynq Board", "All on-board embedded accessories like LEDs, OLED, etc.")
 
-Rel(customer, web_app, "Uses", "HTTPS")
-Rel(customer, spa, "Uses", "HTTPS")
-Rel(customer, mobile_app, "Uses")
+Rel(players, ui, "Interact with", "Physical Buttons")
+Rel(players, io_handler, "Use", "Buttons + Camera ")
+Rel(io_handler, pynq, "Interacts with hardware", "C/C++ HAL/Memory-mapped I/O")
+Rel(io_handler, camera, "Obtains video information", "USB -> OpenCV")
 
-Rel_Neighbor(web_app, spa, "Delivers")
-Rel(spa, backend_api, "Uses", "async, JSON/HTTPS")
-Rel(mobile_app, backend_api, "Uses", "async, JSON/HTTPS")
-Rel_Back_Neighbor(database, backend_api, "Reads from and writes to", "sync, JDBC")
+Rel(io_handler, pipeline, "Passes camera data", "JSON/HTTPS")
+Rel_Neighbor(pipeline, face_detection, "Passes processed data", "async, JSON/HTTPS")
+Rel(face_detection, game_manager, "Returns predictions", "JSON/HTTPS")
+Rel(ui, players, "Displays game state")
+Rel(io_handler, game_manager, "Passes user input", "Buttons from embedded device")
+Rel(game_manager, io_handler, "Sends hardware user feedback")
+Rel(game_manager, ui, "Provides game state information")
+Rel(game_manager, server, "Provides game state information")
 
-Rel_Back(customer, email_system, "Sends e-mails to")
-Rel_Back(email_system, backend_api, "Sends e-mails using", "sync, SMTP")
-Rel_Neighbor(backend_api, banking_system, "Uses", "sync/async, XML/HTTPS")
+Rel(admin, server, "Monitors system")
+Rel(server, admin, "Displays game state")
+
 @enduml
