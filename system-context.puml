@@ -5,18 +5,23 @@
 
 LAYOUT_WITH_LEGEND()
 
-title System Context diagram for Face Frenzy(Not sexual)
+title System Context diagram for Face Frenzy
 
-Person(user, "Player", "A user of this system, player. Could be multiple people, with no different accounts")
-Person(Juadmin, "Juadmin", "Developer of the system, and review of anaylitcs data through the web server")
-System(game, "Internet Banking System", "Allows customers to view information about their bank accounts, and make payments.")
+Person(User, "Player", "A user of this system, player. Could be multiple people, with no different accounts")
+Person(Admin, "Admin", "Developer of the system, and review of anaylitcs data through the web server")
+System(Game, "Face Frenzy Game", "The Game, where just the right amount of faces have to be shown")
  
-System_Ext(Camera, "E-mail system", "The internal Microsoft Exchange e-mail system.")
-System_Ext(Display, "E-mail system", "The internal Microsoft Exchange e-mail system.")
-System_Ext(Webserver, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+System_Ext(Camera, "Camera", "The camera, where the game precieves the room from")
+System_Ext(Display, "Display", "The hardware, where the game displays information")
+System_Ext(PYNQ, "PYNQ Board", "Hardware, where the game run")
 
-Rel(user, game, "Uses")
-Rel_Back(user, mail_system, "Sends e-mails to")
-Rel_Neighbor(game, mail_system, "Sends e-mails", "SMTP")
-Rel(game, mainframe, "Uses")
+Rel(Display, User, "Shows the game")
+Rel(Camera, User, "Percieves Faces")
+
+Rel(Game, Admin, "Displays Analytics")
+Rel(Admin, Game, "Makes Changes")
+
+Rel(Game, PYNQ, "Is run on")
+Rel(PYNQ, Display, "Sends information to show")
+Rel(PYNQ, Camera, "Recieves picture to process")
 @enduml
