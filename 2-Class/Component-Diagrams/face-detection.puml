@@ -7,7 +7,8 @@ LAYOUT_WITH_LEGEND()
 
 title Component diagram for Face Detector
 
-System_Ext(io_handler, "I/O Handler", "Handles interactions between the system and I/O devices")
+Container(pipeline, "Data Pipeline", "Python", "Manages data transfer between the camera and the face detection, applying preprocessing along the way.")
+Container(game_manager, "Game State Manager", "Python", "Takes care of the game state, like starting the game, evaluating a loss or a win, etc.")
 
 Container_Boundary(api, "Face Detector") {
     Component(process, "Processing Manager", "Python and OpenCV", "Process captured frames")
@@ -18,7 +19,7 @@ Container_Boundary(api, "Face Detector") {
     Rel(detect, return, "Information to be displayed")
 }
 
-Rel(io_handler, process, "Sends Images")
-Rel(return, io_handler, "Sends Output")
+Rel(pipeline, process, "Sends Images")
+Rel(return, game_manager, "Sends Output")
 
 @enduml
