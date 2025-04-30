@@ -1,0 +1,25 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include <C4/C4_Component.puml>
+
+LAYOUT_WITH_LEGEND()
+
+title Component diagram for Face Detector
+
+Container(pipeline, "Data Pipeline", "Python", "Manages data transfer between the camera and the face detection, applying preprocessing along the way.")
+Container(game_manager, "Game State Manager", "Python", "Takes care of the game state, like starting the game, evaluating a loss or a win, etc.")
+
+Container_Boundary(api, "Face Detector") {
+    Component(process, "Processing Manager", "Python and OpenCV", "Process captured frames")
+    Component(detect, "Face Detector", "Python and OpenCV", "Detect faces using OpenCV")
+    Component(return, "Simple Output Manager", "Python and OpenCV", "Return number of faces detected")
+
+    Rel(process, detect, "Images for processing")
+    Rel(detect, return, "Information to be displayed")
+}
+
+Rel(pipeline, process, "Sends Images")
+Rel(return, game_manager, "Sends Output")
+
+@enduml
