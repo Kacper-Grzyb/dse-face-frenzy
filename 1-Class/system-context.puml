@@ -14,12 +14,14 @@ System(Game, "Face Frenzy Game", "The Game, where just the right amount of faces
 System_Ext(Camera, "Camera", "The camera, where the game precieves the room from")
 System_Ext(Display, "Display", "The hardware, where the game displays information")
 System_Ext(PYNQ, "PYNQ Board", "Hardware, where the game run")
+System_Ext(Browser, "Web Browser", "Medium from which to monitor the system")
 
 Rel(Display, User, "Shows the game")
 Rel(Camera, User, "Percieves Faces")
 
-Rel(Game, Admin, "Displays Analytics")
-Rel(Admin, Game, "Makes Changes")
+Rel(Game, Browser, "Displays Analytics")
+Rel(Admin, Game, "Makes changes")
+Rel(Admin, Browser, "Monitors game")
 
 Rel(Game, PYNQ, "Is run on")
 Rel(PYNQ, Display, "Sends information to show")
