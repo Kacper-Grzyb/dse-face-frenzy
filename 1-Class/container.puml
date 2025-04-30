@@ -9,7 +9,7 @@ Person(players, Player, "People playing Face Frenzy")
 Person(admin, Admin, "Person monitoring the game remotely through he HTTP server")
 
 System_Boundary(c1, "Frace Frenzy Game") {
-    Container(face_detection, "Face Detection Component", "Python", "Provides face detection from processed data based on the Haar-cascade Classifier from OpenCV")
+    Container(face_detection, "Face Detection Container", "Python", "Provides face detection from processed data based on the Haar-cascade Classifier from OpenCV")
     Container(ui, "UI", "Python", "User interface displayed on the HDMI screen")
     Container(io_handler, "I/O Handler", "Python", "Handles interactions between the system and I/O devices")
     Container(game_manager, "Game State Manager", "Python", "Takes care of the game state, like starting the game, evaluating a loss or a win, etc.")
