@@ -22,7 +22,7 @@ System_Ext(pynq, "Pynq Board", "All on-board embedded accessories like LEDs, OLE
 System_Ext(display, "HDMI Display", "external display conected to PYNQ")
 
 Rel(players, ui, "Interact with", "Physical Buttons")
-Rel(players, io_handler, "Use", "Buttons + Camera ")
+Rel(players, pynq, "Use", "Buttons + Camera ")
 Rel(io_handler, pynq, "Interacts with hardware", "Python HAL/Memory-mapped I/O")
 Rel(io_handler, camera, "Obtains video information", "USB -> OpenCV")
 Rel(ui, display, "Is displayed on")
