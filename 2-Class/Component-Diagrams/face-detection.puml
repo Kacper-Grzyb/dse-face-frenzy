@@ -1,0 +1,24 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include <C4/C4_Component.puml>
+
+LAYOUT_WITH_LEGEND()
+
+title Component diagram for Face Detector
+
+System_Ext(io_handler, "I/O Handler", "Handles interactions between the system and I/O devices")
+
+Container_Boundary(api, "Face Detector") {
+    Component(process, "Processing Manager", "Python and OpenCV", "Process captured frames")
+    Component(detect, "Face Detector", "Python and OpenCV", "Detect faces using OpenCV")
+    Component(return, "Simple Output Manager", "Python and OpenCV", "Return number of faces detected")
+
+    Rel(process, detect, "Images for processing")
+    Rel(detect, return, "Information to be displayed")
+}
+
+Rel(io_handler, process, "Sends Images")
+Rel(return, io_handler, "Sends Output")
+
+@enduml
