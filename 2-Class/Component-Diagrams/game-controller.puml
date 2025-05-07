@@ -1,0 +1,38 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include <C4/C4_Component.puml>
+
+LAYOUT_WITH_LEGEND()
+
+title Component diagram for Game Manager
+
+Container(io_handler, "I/O Handler", "Python", "Handles interactions between the system and I/O devices")
+Container(face_detection, "Face Detection Container", "Python", "Provides face detection from processed data based on the Haar-cascade Classifier from OpenCV")
+Container(ui, "UI", "Python", "User interface displayed on the HDMI screen")
+Container(server, "Basic HTTP Server", "Docker", "Allows remote monitoring of the game by system admins. Handled on a separate thread.")
+
+Container_Boundary(game_manager, "Game State Manager") {
+    Component(control, "Round Controller", "Python", "Controll the overall game flow (start, round, pause, end)")
+    Component(manage, "Score Manager", "Python", "Manage score and strikes")
+    Component(generate, "Target Generator", "Python💅", "Randomly generate target number of faces")
+    Component(timer, "Countdown Timer", "Python", "Manage countdown timing for rounds, trigger snapshot after, adjust countdown speed across rounds")
+    Component(pause, "Pause Controller", "Python", "Return number of faces detected")
+
+    Rel(control, manage, "Save game status")
+    Rel(manage, control, "Return Winner")
+    Rel(control, generate, "Request number of targets")
+    Rel(generate, control, "Give number of targets")
+    Rel(pause, control, "Resume")
+    Rel(control, pause, "Pause the game")
+    Rel(timer, control, "Limit the time for the game")
+}
+
+Rel(io_handler, control, "Passes user input", "Buttons from embedded device")
+Rel(face_detection, control, "Returns predictions", "JSON/HTTPS")
+Rel(control, io_handler, "Sends hardware user feedback")
+Rel(control, ui, "Provides game state information")
+Rel(control, server, "Provides game state information")
+
+
+@enduml
