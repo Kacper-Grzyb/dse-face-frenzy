@@ -2,6 +2,7 @@ from pynq.overlays.base import BaseOverlay
 from pynq.lib.video import *
 from enum import Enum
 import random
+import math
 
 class Game(Enum):
     COUNTDOWN = 1
@@ -59,6 +60,20 @@ while base.buttons[3].read()==0:
             #cv2.imwrite("output.jpg", frame_vga)
 
             np_frame = frame_vga
+
+            cv2.putText(
+              img=np_frame,
+              text=f"{math.ceil(duration-(time.time()-start_time))}",
+              org=(50, 50),
+              fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+              fontScale=1,
+              color=(255, 255, 255),
+              thickness=2,
+              lineType=cv2.LINE_AA
+           )
+
+
+
             outframe[0:480,0:640,:] = frame_vga[0:480,0:640,:]
             hdmi_out.writeframe(outframe)
 
@@ -92,9 +107,9 @@ while base.buttons[3].read()==0:
                 roi_gray = gray[y:y+h, x:x+w]
                 roi_color = np_frame[y:y+h, x:x+w]
 
-            eyes = eye_cascade.detectMultiScale(roi_gray)
-            for (ex,ey,ew,eh) in eyes:
-                cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+                eyes = eye_cascade.detectMultiScale(roi_gray)
+                for (ex,ey,ew,eh) in eyes:
+                    cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
             outframe[0:480,0:640,:] = frame_vga[0:480,0:640,:]
             hdmi_out.writeframe(outframe)
