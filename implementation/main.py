@@ -1,5 +1,14 @@
 from pynq.overlays.base import BaseOverlay
 from pynq.lib.video import *
+from enum import Enum
+import random
+
+class Game(Enum):
+    COUNTDOWN = 1
+    FACEDETECT = 2
+    RANDOMIZE_TIMER = 3
+
+
 base = BaseOverlay("base.bit")
 
 # monitor configuration: 640*480 @ 60Hz
@@ -28,65 +37,74 @@ print("Capture device is open: " + str(videoIn.isOpened()))
 import numpy as np
 import time
 
+game_state = Game.RANDOMIZE_TIMER
+duration = 0
+start_time = 0
+
 while base.buttons[3].read()==0:
-	loop_start = time.time()
+    match game_state:
+        case Game.RANDOMIZE_TIMER:
+            start_time = time.time()
+            duration = random.uniform(2, 5)
+            game_state = Game.COUNTDOWN
+        case Game.COUNTDOWN:
+            ret, frame_vga = videoIn.read()
+            outframe = hdmi_out.newframe()
 
-	t1 = time.time()
-	ret, frame_vga = videoIn.read()
-	outframe = hdmi_out.newframe()
-	t2 = time.time()
+            # Display webcam image via HDMI Out
 
-	# Display webcam image via HDMI Out
+            if not ret:
+                    raise RuntimeError("Failed to read from camera.")
 
-	if not ret:
-    		raise RuntimeError("Failed to read from camera.")
+            #cv2.imwrite("output.jpg", frame_vga)
 
-	#cv2.imwrite("output.jpg", frame_vga)
+            np_frame = frame_vga
+            outframe[0:480,0:640,:] = frame_vga[0:480,0:640,:]
+            hdmi_out.writeframe(outframe)
 
-	np_frame = frame_vga
+            if time.time() - start_time > duration:
+                print(time.time())
+                print(time.time() - start_time)
+                game_state = Game.FACEDETECT
+        case Game.FACEDETECT:
+            ret, frame_vga = videoIn.read()
+            outframe = hdmi_out.newframe()
 
-	t3 = time.time()
-	"""
-	face_cascade = cv2.CascadeClassifier(
-    		'/home/xilinx/jupyter_notebooks/base/video/data/'
-    		'haarcascade_frontalface_default.xml')
-	eye_cascade = cv2.CascadeClassifier(
-    		'/home/xilinx/jupyter_notebooks/base/video/data/'
-    		'haarcascade_eye.xml')
-	"""
-	#gray = cv2.cvtColor(np_frame, cv2.COLOR_BGR2GRAY)
-	
-	"""
-	faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-	"""
-	t4 = time.time()
-	"""
-	print(f"Faces detected: {faces}")
+            if not ret:
+                    raise RuntimeError("Failed to read from camera.")
 
-	for (x,y,w,h) in faces:
-		cv2.rectangle(np_frame,(x,y),(x+w,y+h),(255,0,0),2)
-		roi_gray = gray[y:y+h, x:x+w]
-		roi_color = np_frame[y:y+h, x:x+w]
+            np_frame = frame_vga
 
-		eyes = eye_cascade.detectMultiScale(roi_gray)
-		for (ex,ey,ew,eh) in eyes:
-			cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+            # randomize timer
+            face_cascade = cv2.CascadeClassifier(
+                '/home/xilinx/jupyter_notebooks/base/video/data/'
+                'haarcascade_frontalface_default.xml')
+            eye_cascade = cv2.CascadeClassifier(
+                '/home/xilinx/jupyter_notebooks/base/video/data/'
+                'haarcascade_eye.xml')
 
-	"""
-	t5 = time.time()
-	# Output OpenCV results via HDMI
-	outframe[0:480,0:640,:] = frame_vga[0:480,0:640,:]
-	hdmi_out.writeframe(outframe)
-	#cv2.imwrite(f"output1_{i}.jpg",outframe)
-	t6 = time.time()
-	print(f"""
-        	Read Frame: {t2 - t1:.4f}s
-        	Face/Eye Detection: {t4 - t3:.4f}s
-        	Drawing Rectangles: {t5 - t4:.4f}s
-        	HDMI Output: {t6 - t5:.4f}s
-        	Total Loop Time: {t6 - loop_start:.4f}s
-	""")
+            gray = cv2.cvtColor(np_frame, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+            print(f"Faces detected: {len(faces)}")
 
+            for (x,y,w,h) in faces:
+                cv2.rectangle(np_frame,(x,y),(x+w,y+h),(255,0,0),2)
+                roi_gray = gray[y:y+h, x:x+w]
+                roi_color = np_frame[y:y+h, x:x+w]
+
+            eyes = eye_cascade.detectMultiScale(roi_gray)
+            for (ex,ey,ew,eh) in eyes:
+                cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+
+            outframe[0:480,0:640,:] = frame_vga[0:480,0:640,:]
+            hdmi_out.writeframe(outframe)
+            time.sleep(3)
+            game_state = Game.RANDOMIZE_TIMER
+
+
+    # Output OpenCV results via HDMI
+
+    #cv2.imwrite(f"output1_{i}.jpg",outframe)
 print("done")
 videoIn.release()
 hdmi_out.stop()
