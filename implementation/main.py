@@ -28,7 +28,7 @@ print("Capture device is open: " + str(videoIn.isOpened()))
 import numpy as np
 import time
 
-while True:
+while base.buttons[3].read()==0:
 	loop_start = time.time()
 
 	t1 = time.time()
@@ -53,9 +53,10 @@ while True:
 	eye_cascade = cv2.CascadeClassifier(
     		'/home/xilinx/jupyter_notebooks/base/video/data/'
     		'haarcascade_eye.xml')
-
-	gray = cv2.cvtColor(np_frame, cv2.COLOR_BGR2GRAY)
-
+	"""
+	#gray = cv2.cvtColor(np_frame, cv2.COLOR_BGR2GRAY)
+	
+	"""
 	faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 	"""
 	t4 = time.time()
@@ -86,6 +87,9 @@ while True:
         	Total Loop Time: {t6 - loop_start:.4f}s
 	""")
 
+print("done")
 videoIn.release()
 hdmi_out.stop()
+print("deleting hdmi_out")
 del hdmi_out
+print("finished")
