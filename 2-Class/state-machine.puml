@@ -28,13 +28,15 @@ state "System" as System {
         UpdateScore --> GameOver : Validate Strike Amount [strike >= 3]
         
         state ShowFaces {
-            [*] --> Countdown : Randomized time
-            Countdown --> CaptureAndDetect: OpenCV
+            [*] --> RandomizeTimer
+            RandomizeTimer --> Countdown 
+            Countdown --> CaptureAndDetect
         }
         
         state GetReady
+        state RandomizeTimer
         state Countdown
-        state CaptureAndDetect
+        state CaptureAndDetect : OpenCV Detection
         state UpdateScore : Increment Strike [faces_shown != faces_expected]\nIncrement Points [faces_shown == faces_expected]
         state Evaluate
         state GameOver
