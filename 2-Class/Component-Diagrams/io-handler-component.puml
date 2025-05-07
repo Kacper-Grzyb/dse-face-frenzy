@@ -9,6 +9,7 @@ title Component diagram for I/O Handler
 
 System_Ext(camera, "Camera", "external video input device connected to the embedded device that will capture an image of the players after a countdown ends.")
 System_Ext(pynq, "Pynq Board", "All on-board embedded accessories like LEDs, OLED, etc.")
+System_Ext(display, "HDMI Display", "external display conected to PYNQ")
 
 Container(pipeline, "Data Pipeline", "Python", "Manages data transfer between the camera and the face detection, applying preprocessing along the way.")
 Container(game_manager, "Game State Manager", "Python", "Takes care of the game state, like starting the game, evaluating a loss or a win, etc.")
@@ -16,19 +17,23 @@ Container(game_manager, "Game State Manager", "Python", "Takes care of the game 
 
 Container_Boundary(io_handler, "I/O Handler") {
     Component(camera_manager, "Camera Manager", "Python", "Initialize and manage webcam input and capture frames periodically")
-    Component(output_manager, "Simple Output Manager", "Python", "Display face count and show feedback with HDMI overlay or LEDs")
+    Component(output_manager, "Enhanced Output Manager", "Python", "Display face count and show feedback with HDMI overlay or LEDs")
+    Component(screen_manager, "HDMI Display Manager", "Python", "Display user feedback on an external screen connected via HDMI")
     Component(pynq_manager, "Pynq Manager", "Python", "Handles interactions with the PYNQ hardware")
     Component(console_manager, "Console Manager", "bash", "Prints output in the console")
 
     Rel(output_manager, console_manager, "Python", "passes output")
     Rel(output_manager, pynq_manager, "Python", "passes output")
+    Rel(output_manager, screen_manager, "Python", "passes output")
 }
 
+Rel(screen_manager, display, "Passes output", "HDMI")
 Rel(camera_manager, pipeline, "Passes camera data", "JSON/HTTPS")
 Rel(pynq_manager, game_manager, "Passes user input", "Buttons from embedded device")
 Rel(game_manager, pynq_manager, "Sends hardware user feedback")
 
 Rel(pynq_manager, pynq, "Interacts with hardware", "Python HAL/Memory-mapped I/O")
+Rel(pynq_manager, pynq, "Activates LEDs")
 Rel_Back(camera_manager, camera, "Obtains video information", "USB -> OpenCV")
 
 @enduml

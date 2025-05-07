@@ -1,0 +1,74 @@
+@startuml Order Processing State Machine
+
+skinparam StateBackgroundColor LightBlue
+skinparam StateBorderColor Blue
+skinparam ArrowColor DarkBlue
+skinparam StateAttributeFontColor DarkBlue
+skinparam StateFontStyle bold
+skinparam NoteBackgroundColor LightYellow
+skinparam NoteBorderColor Orange
+
+title Face Frenzy Game State Machine
+
+' Define the top-level state - the entire system can be Active or Paused
+state "System" as System {
+    ' Active state contains all the normal game flow
+    state "Active" as Active {
+        [*] --> Idle : Launch Game
+        Idle --> GameLoop: Start Game
+        
+        state Idle
+        state GameLoop {
+            [*] --> GetReady
+            GetReady --> ShowFaces
+            ShowFaces --> Evaluate : Evaluate Output
+            Evaluate --> UpdateScore
+            UpdateScore --> GetReady : Validate Strike Amount [strike < 3]
+        }
+        UpdateScore --> GameOver : Validate Strike Amount [strike >= 3]
+        
+        state ShowFaces {
+            [*] --> Countdown : Randomized time
+            Countdown --> CaptureAndDetect: OpenCV
+        }
+        
+        state GetReady
+        state Countdown
+        state CaptureAndDetect
+        state UpdateScore : Increment Strike [faces_shown != faces_expected]\nIncrement Points [faces_shown == faces_expected]
+        state Evaluate
+        state GameOver
+
+        ' Return to idle from game over
+        GameOver --> Idle : Play Again
+    }
+    
+    ' Pause state with various pause reasons
+    state "Paused" as Paused {
+        state "UserPaused" as UserPaused : Player manually paused
+        state "SystemPaused" as SystemPaused : System initiated pause
+        state "FocusLost" as FocusLost : Window/app lost focus
+        
+        [*] --> UserPaused
+        UserPaused --> [*] : Resume
+        SystemPaused --> [*] : System Ready
+        FocusLost --> [*] : Focus Regained
+    }
+    
+    ' Transitions between Active and Paused states
+    Active -right-> Paused : Pause Game
+    Paused -left-> Active : Resume Game
+}
+
+note right of Paused
+  The game state is preserved
+  when paused and restored
+  when resumed
+end note
+
+note bottom of System
+  Pause hierarchy sits above all game states
+  allowing pause/resume from any point
+end note
+
+@enduml
