@@ -23,11 +23,12 @@ Container_Boundary(game_manager, "Game State Manager") {
     Rel(manage, control, "Return Winner")
     Rel(control, generate, "Request number of targets")
     Rel(generate, control, "Give number of targets")
-    Rel(pause, control, "Resume")
-    Rel(control, pause, "Pause the game")
+    Rel_Back(control, pause, "Pause the game")
     Rel(timer, control, "Limit the time for the game")
 }
 
+Rel(pause, io_handler, "Listen for Pause input")
+Rel(io_handler, pause, "Get pause input")
 Rel(io_handler, control, "Passes user input", "Buttons from embedded device")
 Rel(face_detection, control, "Returns predictions", "JSON/HTTPS")
 Rel(control, io_handler, "Sends hardware user feedback")
