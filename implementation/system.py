@@ -46,6 +46,7 @@ class FaceFrenzySystem:
         
         # Variable to track if pause button is pressed
         self.pause_requested = False
+        self.pause_start = 0
         
     def run(self):
         """Run the main system loop"""
@@ -60,6 +61,7 @@ class FaceFrenzySystem:
                     self.state = SystemState.PAUSED
                     self.pause_reason = PauseReason.USER_PAUSED
                     self.pause_requested = False
+                    self.pause_start = time.time()
                     
                 if self.state == SystemState.IDLE:
                     self._handle_idle()
@@ -79,10 +81,11 @@ class FaceFrenzySystem:
         """Check if pause button is pressed. This is a placeholder."""
         # In a real implementation, this would check GPIO pins, keyboard input, etc.
         # For now, we just set it to False
-        self.pause_requested = False
+        self.pause_requested = self.base.buttons[1].read()==1
         
     def _handle_idle(self):
         """Display idle screen and wait for start input"""
+        print("handle_dile")
         outframe = self.hdmi_out.newframe()
         np_frame = np.zeros((480, 640, 3), dtype=np.uint8)
         
@@ -112,12 +115,13 @@ class FaceFrenzySystem:
         self.hdmi_out.writeframe(outframe)
         
         # Wait for a key press (could be replaced with GPIO button press)
-        key = cv2.waitKey(1) & 0xFF
-        if key != 255:
-            # Any key pressed, start the game
-            self.game_loop = GameLoop(self.hdmi_out, self.video_in)
-            self.state = SystemState.GAME_LOOP
-            
+        while True:
+           if self.base.buttons[0].read()==1:
+               self.state = SystemState.IDLE
+               break
+        self.game_loop = GameLoop(self.hdmi_out, self.video_in)
+        self.state = SystemState.GAME_LOOP
+
     def _handle_game_loop(self):
         """Handle the game loop state"""
         # Run one iteration of the game loop
@@ -169,10 +173,12 @@ class FaceFrenzySystem:
         self.hdmi_out.writeframe(outframe)
         
         # Wait for a key press
-        key = cv2.waitKey(1) & 0xFF
-        if key != 255:
-            # Any key pressed, return to idle state
-            self.state = SystemState.IDLE
+        while True:
+            if self.base.buttons[0].read()==1:
+                self.state = SystemState.IDLE
+                break
+
+            
             
     def _handle_paused(self):
         """Handle the paused state"""
@@ -215,11 +221,12 @@ class FaceFrenzySystem:
         self.hdmi_out.writeframe(outframe)
         
         # Wait for a key press to resume
-        key = cv2.waitKey(1) & 0xFF
-        if key != 255:
-            # Any key pressed, resume the game
-            self.state = self.previous_state
-            
+        while True:
+            if self.base.buttons[0].read()==1:
+                self.state = self.previous_state
+                self.game_loop.show_faces.start_time += time.time() - self.pause_start
+                break
+
     def _cleanup(self):
         """Clean up resources"""
         print("Cleaning up resources...")
